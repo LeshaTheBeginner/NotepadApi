@@ -48,10 +48,5 @@ async def root():
 async def root():
     return {"message": "Hello World"}
 
-@app.get("/lastdeleted")
-async def root():
-    return {"message": "Hello lastdeleted"}
-
-
 
 
