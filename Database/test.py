@@ -14,7 +14,7 @@ qselect = sqlalchemy.select(noteTable).where(noteTable.columns.noteid == "799f6e
 
 # result_proxy = connection.execute(qfavorite)
 
-result_proxy = connection.execute(qnewest)
+result_proxy = connection.execute(qselect)
 result_set = result_proxy.fetchall()
 
 pprint(result_set)
