@@ -1,4 +1,4 @@
-# NotepadApi - Made by LeshaTheBeginner ("[GitHub](https://github.com/LeshaTheBeginner/NotepadApi"))
+# NotepadApi - Made by LeshaTheBeginner ([GitHub](https://github.com/LeshaTheBeginner/NotepadApi"))
 ## Requests
 Requests is the way you communicate with the API. This part lays all requests here.
 **/create** - POST - Creates a note.
