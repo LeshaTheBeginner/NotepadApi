@@ -14,6 +14,16 @@ Requests is the way you communicate with the API. This part lays all requests he
 **/recover** - GET - Recovers the last deleted note.
 **/help** - GET - Help Page
 **/** - GET - Hello World!
+# NotepadApi
+- /create -- Creates a note
+- /edit -- Edits a note
+- /delete -- Deletes a note
+- /getnotes Returns all the notes
+- /star Stars (Favorites) a note
+- /lastcreated Returns the last created note
+- /lastused -- Returns the last used note
+- /help -- Help Page
+- / -- Hello World!
 
 ## JSON for POST requests
 JSON is the only way to request something specific, be it search or deletion. Here lays every data class and it's use.
@@ -53,3 +63,11 @@ noteeditdate = TIMESTAMP
 /API -- has the requests, dataclasses, and testing.
 /Database -- has managing of the database, and bridging SQL and Python.
 /GUI -- has the future GTK4 GUI. Please help me i need help
+- noteid = uuid DEFAULT gen_random_uuid()
+- notename = VARCHAR(255)
+- noteowner = VARCHAR(32)
+- notedata = TEXT NOT NULL
+- notetype = VARCHAR(8)
+- favorite = BOOLEAN
+- notecreatedate = TIMESTAMP
+- noteeditdate = TIMESTAMP
