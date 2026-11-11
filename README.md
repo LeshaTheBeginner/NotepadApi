@@ -4,7 +4,7 @@ Requests is the way you communicate with the API. This part lays all requests he
 - **/create** - POST - Creates a note.
 - **/edit** - POST - Edits a note. Basically you can edit notename and/or notedata and/or notetype. Same structure as before.
 - **/delete** - POST - Deletes a note (and permamently deletes the last note it called twice). Requires a UUID of the note, there can only be one recoverable/perm delatable note with UUID 0.
-- **/getnotes/*n*** - GET - Returns all the notes with 10 notes in each page ({n} = page number).
+- **/getnotes/{n}** - GET - Returns all the notes with 10 notes in each page ({n} = page number).
 - **/star** - POST - Stars (internally Favorites) a note. Requires note's UUID.
 - **/lastdeleted** - GET - Returns the last deleted note.
 - **/lastcreated** - GET - Returns the last created note.
