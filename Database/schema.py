@@ -1,12 +1,14 @@
 from pydantic import BaseModel
+from uuid import UUID
+from datetime import datetime
 # import timestamp as tp
 
 class NoteObj(BaseModel):
-    noteid: str
+    noteid: UUID
     notename: str
     noteowner: str
     notedata: str
-    notetype: vars
+    notetype: str
     favorite: bool
-    notecreatedate: str
-    noteeditdate: str
+    notecreatedate: datetime
+    noteeditdate: datetime
