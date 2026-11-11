@@ -19,6 +19,7 @@ sys.path.append(str(Database_PATH))
 # /help
 # /
 from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
 from note_dataclasses import *
 from model import engine,noteTable,metadata
 from schema import NoteObj
@@ -38,11 +39,30 @@ app = FastAPI()
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "Hello World! add /help to get the commands and such"}
 
-@app.get("/help")
+@app.get("/help", response_class=HTMLResponse)
 async def help():
-    return {"message": "help page but he have none"}
+    return ''' <h1>NotepadApi - Made by LeshaTheBeginner (<a href="https://github.com/LeshaTheBeginner/NotepadApi">GitHub</a>)</h1>
+<p>/create - POST - Creates a note. This is the structure: {"noteowner":"yourNameHere","notename":"noteName","notedata":"theNoteStuffInHere","notetype":"mdOrTxtThisIsForTheFuture"}</p>
+<p>/edit - POST - Edits a note. Basically you can edit notename and/or notedata and/or notetype. Same structure as before</p>
+<p>/delete - POST - Deletes a note (and permamently deletes the last note it called twice). Requires a UUID of the note, there can only be one recoverable/perm delatable note with UUID 0.</p>
+<p>/getnotes/{n} - GET - Returns all the notes with 10 notes in each page ({n} = page number)</p>
+<p>/star - POST - Stars (Favorites) a note. Requires note's UUID</p>
+<p>/lastdeleted - GET - Returns the last deleted note</p>
+<p>/lastcreated - GET - Returns the last created note</p>
+<p>/lastused - GET - Returns the last used </p>
+<p>/search - POST - Returns notes based on search query</p>
+<p>/copy - POST - Duplicates a note with a new UUID</p>
+<p>/recover - GET - Recovers the last deleted note</p>
+<p>/help - GET - Help Page</p>
+<p>/ - GET - Hello World!</p>
+<p>Whoever finds this, i mean do whatever you want ot do here as long as you don't delete everything.</p>
+<p>Rules are:</p>
+<p>don't delete everything</p>
+<p>be normal\n</p>
+<p>Done</p>
+'''
 
 @app.post("/create",response_model=str)
 async def createNote(item:createNotes):
@@ -75,19 +95,17 @@ async def notedelete(item:selectNotes):
     qdelete = sqlalchemy.delete(noteTable).where(noteTable.columns.noteid==deletedid)
     qfakedelete = sqlalchemy.update(noteTable).where(noteTable.columns.noteid==item.noteid).values(noteid=deletedid,notecreatedate=datetime.now())
     deletedNote = connection.execute(qselect)
-    print(deletedNote.fetchall()) # FUCK YOU MEAN '[]' DAWG
-    if deletedNote.fetchall() == deletedid:
-        result_proxy = connection.execute(qdelete)
-        connection.commit()
-    else:
-        result_proxy = connection.execute(qdelete)
-        result_proxy = connection.execute(qfakedelete)
-        connection.commit()
-    return f"Removed {deletedNote.fetchall()} ."
+    request = deletedNote.fetchall() # FUCK YOU MEAN '[]' DAWG
+    result_proxy = connection.execute(qdelete) # If it doesnt find anything, nothing happens
+    result_proxy = connection.execute(qfakedelete) 
+    connection.commit()
+    return f"Removed {request} ."
 
-@app.get("/getnotes",response_model=list[NoteObj])
-async def getnotes():
-    qnewest = sqlalchemy.select(noteTable).order_by(noteTable.columns.notecreatedate)
+@app.get("/getnotes/{page_id}",response_model=list[NoteObj])
+async def getnotes(page_id = 1):
+    #FEATURE: PAGINATE THIS SO IT WOULD BASICALLY SHOW ONLY OF UP TO 50 CHARACTERS OF CONTENTS OF EACH NOTE
+    page_id = int(page_id) if int(page_id) >= 1 else 1
+    qnewest = sqlalchemy.select(noteTable).order_by(sqlalchemy.desc(noteTable.columns.notecreatedate)).offset(int((page_id-1)*10)).limit(10)
     result_proxy =  connection.execute(qnewest)
     result_set = result_proxy.fetchall()
     return result_set
@@ -100,7 +118,7 @@ async def notestar(item:selectNotes):
     qfavorite = sqlalchemy.update(noteTable).values(favorite=not selected[0][5]).where(noteTable.columns.noteid==item.noteid)
     result_proxy = connection.execute(qfavorite)
     connection.commit()
-    return "Successfully Favorited!"
+    return "Successfully Favorited/Unfavorited!"
 
 @app.get("/lastused",response_model=NoteObj)
 async def getlastused():
@@ -111,14 +129,15 @@ async def getlastused():
 
 @app.get("/lastcreated",response_model=NoteObj)
 async def getlastcreated():
-    qnewest = sqlalchemy.select(noteTable).order_by(noteTable.columns.notecreatedate)
+    deletedid = UUID(int=0)
+    qnewest = sqlalchemy.select(noteTable).order_by(noteTable.columns.notecreatedate).where(noteTable.columns.noteid!=deletedid)
     result_proxy = connection.execute(qnewest)
     result_set = result_proxy.fetchall()
     return result_set[-1]
 
 @app.post("/search",response_model=list[NoteObj])
 async def searchnotes(search:searchNotes): #{"aaaaaa8492734820":"testname","aaaaaa8492734820":"testname","aaaaaa8492734820":"testname"} print("te" in i)
-    qsearch = sqlalchemy.select(noteTable).where(noteTable.columns.notename.icontains(search.search_query)) # icontains = case insensitive contains, contains = case sensitive contains
+    qsearch = sqlalchemy.select(noteTable).where(noteTable.columns.notename.icontains(str(search.search_query))) # icontains = case insensitive contains, contains = case sensitive contains
     result_proxy = connection.execute(qsearch)
     result_set = result_proxy.fetchall()
     return result_set
@@ -161,6 +180,8 @@ async def restore():
     #(UUID('00000000-0000-0000-0000-000000000000'), 'TERMUXTEST', 'termux', 'удаляем', 'txt', False, datetime.datetime(2026, 10, 5, 7, 48, 14, 927798), datetime.datetime(2026, 10, 5, 6, 41, 10, 227450))
     return "Successfully Restored!"
 
+
+
 if __name__ == "__main__":
     # Run the server using Uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) # USE http://127.0.0.1:8000/ ,  0.0.0.0 IS NOW BROKEN
+    uvicorn.run(app, host="127.0.0.1", port=8000,proxy_headers=True)#ssl_keyfile="../../certs/key.pem", ssl_certfile="../../certs/cert.pem") # USE http://127.0.0.1:8000/ ,  0.0.0.0 IS NOW BROKEN
